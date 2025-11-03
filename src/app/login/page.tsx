@@ -18,13 +18,9 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     const { data, error } = await signIn.email({ email, password });
-    if (error) return setError(error.message);
+    if (error) return setError(error.message ?? "Unable to sign in. Please try again.");
     router.push("/dashboard");
   };
-
-  
-  console.log("DATABASE_URL:", process.env.DATABASE_URL);
-  console.log("NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET);
 
   return (
     <div className="min-h-dvh flex items-center justify-center p-6">
