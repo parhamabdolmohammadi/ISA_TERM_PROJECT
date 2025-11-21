@@ -8533,6 +8533,7 @@ export namespace Prisma {
 
   export type EndpointStatWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    method_endpoint?: EndpointStatMethodEndpointCompoundUniqueInput
     AND?: EndpointStatWhereInput | EndpointStatWhereInput[]
     OR?: EndpointStatWhereInput[]
     NOT?: EndpointStatWhereInput | EndpointStatWhereInput[]
@@ -8541,7 +8542,7 @@ export namespace Prisma {
     count?: IntFilter<"EndpointStat"> | number
     createdAt?: DateTimeFilter<"EndpointStat"> | Date | string
     updatedAt?: DateTimeFilter<"EndpointStat"> | Date | string
-  }, "id">
+  }, "id" | "method_endpoint">
 
   export type EndpointStatOrderByWithAggregationInput = {
     id?: SortOrder
@@ -8596,6 +8597,7 @@ export namespace Prisma {
 
   export type UserApiUsageWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    userId_method_endpoint?: UserApiUsageUserIdMethodEndpointCompoundUniqueInput
     AND?: UserApiUsageWhereInput | UserApiUsageWhereInput[]
     OR?: UserApiUsageWhereInput[]
     NOT?: UserApiUsageWhereInput | UserApiUsageWhereInput[]
@@ -8606,7 +8608,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"UserApiUsage"> | Date | string
     updatedAt?: DateTimeFilter<"UserApiUsage"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "id">
+  }, "id" | "userId_method_endpoint">
 
   export type UserApiUsageOrderByWithAggregationInput = {
     id?: SortOrder
@@ -9456,6 +9458,11 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type EndpointStatMethodEndpointCompoundUniqueInput = {
+    method: string
+    endpoint: string
+  }
+
   export type EndpointStatCountOrderByAggregateInput = {
     id?: SortOrder
     method?: SortOrder
@@ -9491,6 +9498,12 @@ export namespace Prisma {
   export type EndpointStatSumOrderByAggregateInput = {
     id?: SortOrder
     count?: SortOrder
+  }
+
+  export type UserApiUsageUserIdMethodEndpointCompoundUniqueInput = {
+    userId: string
+    method: string
+    endpoint: string
   }
 
   export type UserApiUsageCountOrderByAggregateInput = {

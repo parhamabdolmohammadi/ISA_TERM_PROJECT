@@ -85,6 +85,8 @@ model EndpointStat {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([method, endpoint])
 }
 
 model UserApiUsage {
@@ -98,4 +100,6 @@ model UserApiUsage {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([userId, method, endpoint])
 }
