@@ -1,0 +1,36 @@
+openapi: 3.0.0
+info:
+  title: Users API
+  version: 1.0.0
+  description: API documentation for the Users service
+
+paths:
+  /api/users/init:
+    get:
+      summary: Create users table if not exists
+      responses:
+        200:
+          description: Table ready
+
+  /api/users:
+    get:
+      summary: Get all users
+      responses:
+        200:
+          description: List of users
+
+  /api/users/add:
+    post:
+      summary: Add a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        200:
+          description: Newly created user
