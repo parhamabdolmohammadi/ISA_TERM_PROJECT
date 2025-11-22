@@ -22,14 +22,14 @@ export async function GET() {
     const usersById = Object.fromEntries(users.map((u) => [u.id, u]));
 
     // Format final output
-const formatted = stats.map((s) => ({
-  userId: s.userId,
-  totalUsage: s._sum.count || 0,
-  user: {
-    name: usersById[s.userId]?.name || "Unknown",
-    email: usersById[s.userId]?.email || "Unknown"
-  }
-}));
+    const formatted = stats.map((s) => ({
+      userId: s.userId,
+      totalUsage: s._sum.count || 0,
+      user: {
+        name: usersById[s.userId]?.name || "Unknown",
+        email: usersById[s.userId]?.email || "Unknown"
+      }
+    }));
 
     return NextResponse.json(formatted);
   } catch (err) {
