@@ -35,7 +35,11 @@ export default function ChatClient() {
     if (!prompt || loading) return;
 
     setInput("");
-    const userMsg: Msg = { id: crypto.randomUUID(), role: "user", content: prompt };
+    const userMsg: Msg = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: prompt,
+    };
     setMessages((m) => [...m, userMsg]);
     setLoading(true);
 
@@ -69,7 +73,10 @@ export default function ChatClient() {
 
   // auto-scroll on new messages
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+    listRef.current?.scrollTo({
+      top: listRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -81,7 +88,9 @@ export default function ChatClient() {
 
   return (
     <div className="min-h-screen bg-backgroundLight flex items-center justify-center p-4">
-      <Card className={`w-full ${fullWidth ? "max-w-5xl" : "max-w-3xl"} shadow-lg`}>
+      <Card
+        className={`w-full ${fullWidth ? "max-w-5xl" : "max-w-3xl"} shadow-lg`}
+      >
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl">Education Advisor</CardTitle>
           <div className="flex items-center gap-2">
@@ -99,7 +108,10 @@ export default function ChatClient() {
         <CardContent className="pt-4">
           <div className="grid gap-4">
             {/* Messages list */}
-            <ScrollArea ref={listRef} className="h-[55vh] rounded-md border p-3 bg-card">
+            <ScrollArea
+              ref={listRef}
+              className="h-[55vh] rounded-md border p-3 bg-card"
+            >
               <div className="space-y-4">
                 {messages.map((m) => (
                   <MessageBubble key={m.id} role={m.role} content={m.content} />
@@ -119,7 +131,11 @@ export default function ChatClient() {
                 disabled={loading}
               />
               <div className="mt-2 flex items-center justify-end gap-2">
-                <Button variant="ghost" onClick={() => setInput("")} disabled={loading || !input}>
+                <Button
+                  variant="ghost"
+                  onClick={() => setInput("")}
+                  disabled={loading || !input}
+                >
                   Clear
                 </Button>
                 <Button onClick={() => send()} disabled={loading || !input}>
@@ -164,10 +180,20 @@ export default function ChatClient() {
   );
 }
 
-function MessageBubble({ role, content }: { role: "user" | "assistant"; content: string }) {
+function MessageBubble({
+  role,
+  content,
+}: {
+  role: "user" | "assistant";
+  content: string;
+}) {
   const isUser = role === "user";
   return (
-    <div className={`flex items-start gap-3 ${isUser ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`flex items-start gap-3 ${
+        isUser ? "justify-end" : "justify-start"
+      }`}
+    >
       {!isUser && (
         <Avatar className="h-8 w-8">
           <AvatarFallback>EA</AvatarFallback>
