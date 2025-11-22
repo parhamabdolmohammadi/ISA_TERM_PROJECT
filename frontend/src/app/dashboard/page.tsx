@@ -3,7 +3,13 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -25,17 +31,25 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
-          <Button className="bg-slate-700 text-white hover:bg-slate-600 hover:cursor-pointer"
-            onClick={() => {
-            router.push("/chat");
-            }}>Education Advisor</Button>
-          <Button className="bg-red-700 text-white hover:bg-red-600 hover:cursor-pointer"
-            onClick={async () => {
-            // Sign out the user and redirect to login page
-            await signOut();
-            router.push("/login");
-            }}>Sign out</Button>
-            </div>
+            <Button
+              className="bg-slate-700 text-white hover:bg-slate-600 hover:cursor-pointer"
+              onClick={() => {
+                router.push("/chat");
+              }}
+            >
+              Education Advisor
+            </Button>
+            <Button
+              className="bg-red-700 text-white hover:bg-red-600 hover:cursor-pointer"
+              onClick={async () => {
+                // Sign out the user and redirect to login page
+                await signOut();
+                router.push("/login");
+              }}
+            >
+              Sign out
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

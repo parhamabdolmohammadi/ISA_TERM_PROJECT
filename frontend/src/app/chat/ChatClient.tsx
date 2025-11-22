@@ -1,119 +1,265 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Loader2, Send } from "lucide-react";
 
-export default function AdminPage() {
-  const [stats, setStats] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [loadingUsers, setLoadingUsers] = useState(true);
+type Msg = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+};
+
+export default function ChatClient() {
+  const [messages, setMessages] = useState<Msg[]>([
+    {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content:
+        "Hi! I’m your education advisor. Ask me anything! e.g. “What degree do I need to become a data scientist?”",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [fullWidth, setFullWidth] = useState(false); // small UX toggle
+  const listRef = useRef<HTMLDivElement>(null);
+  const [usage, setUsage] = useState<number | null>(null);
+
+  const send = async (text?: string) => {
+    const prompt = (text ?? input).trim();
+    if (!prompt || loading) return;
+
+    setInput("");
+    const userMsg: Msg = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: prompt,
+    };
+    setMessages((m) => [...m, userMsg]);
+    setLoading(true);
+
+    try {
+      const r = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data?.error || "Request failed");
+
+      const botMsg: Msg = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: String(data?.response ?? "").trim() || "(no response)",
+      };
+      setMessages((m) => [...m, botMsg]);
+    } catch (e: any) {
+      const errMsg: Msg = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content:
+          "Sorry! Something went wrong talking to the advisor. Please try again.",
+      };
+      setMessages((m) => [...m, errMsg]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // auto-scroll on new messages
+  useEffect(() => {
+    listRef.current?.scrollTo({
+      top: listRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   useEffect(() => {
-    async function loadStats() {
+    async function loadUsage() {
       try {
-        const res = await fetch("/api/admin/user-stats");
+        const res = await fetch("/api/user-chat-usage");
         const data = await res.json();
-        setStats(data);
-      } finally {
-        setLoadingStats(false);
+        setUsage(data.count ?? 0);
+      } catch {
+        setUsage(0);
       }
     }
-
-    async function loadUsers() {
-      try {
-        const res = await fetch("/api/admin/users");
-        const data = await res.json();
-        setUsers(data);
-      } finally {
-        setLoadingUsers(false);
-      }
-    }
-
-    loadStats();
-    loadUsers();
+    loadUsage();
   }, []);
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+    <div className="min-h-screen bg-backgroundLight flex items-center justify-center p-4">
+      <Card
+        className={`w-full ${fullWidth ? "max-w-5xl" : "max-w-3xl"} shadow-lg`}
+      >
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-2xl">Education Advisor</CardTitle>
 
-      <div className="flex justify-end mb-6">
-        <Link
-          href="/admin/users"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md"
-        >
-          View User Stats →
-        </Link>
+            {usage !== null && (
+              <p
+                className={`mt-1 text-sm font-semibold ${
+                  usage > 20 ? "text-red-600" : "text-gray-600"
+                }`}
+              >
+                Total API Usage: {usage}
+              </p>
+            )}
+
+            {usage !== null && usage > 20 && (
+              <p className="mt-1 text-sm text-red-500 font-bold">
+                ⚠️ You have exceeded the free 20-message limit.
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFullWidth((v) => !v)}
+              className="hidden sm:inline-flex"
+            >
+              {fullWidth ? "Compact" : "Wide"}
+            </Button>
+          </div>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-4">
+          <div className="grid gap-4">
+            {/* Messages list */}
+            <ScrollArea
+              ref={listRef}
+              className="h-[55vh] rounded-md border p-3 bg-card"
+            >
+              <div className="space-y-4">
+                {messages.map((m) => (
+                  <MessageBubble key={m.id} role={m.role} content={m.content} />
+                ))}
+                {loading && <TypingRow />}
+              </div>
+            </ScrollArea>
+
+            {/* Composer */}
+            <div className="rounded-md border p-2 bg-card">
+              <Textarea
+                placeholder="Ask about programs, degrees, admissions, or career paths…"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                className="min-h-[72px] resize-none bg-background"
+                disabled={loading}
+              />
+              <div className="mt-2 flex items-center justify-end gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setInput("")}
+                  disabled={loading || !input}
+                >
+                  Clear
+                </Button>
+                <Button onClick={() => send()} disabled={loading || !input}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending…
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Send
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Quick suggestions */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                "What degree do I need to become a data scientist?",
+                "Which courses help me transition into ML engineering?",
+                "What’s the difference between a BSc and a BASc?",
+              ].map((q) => (
+                <Button
+                  key={q}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => send(q)}
+                  disabled={loading}
+                  className="bg-background"
+                >
+                  {q}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function MessageBubble({
+  role,
+  content,
+}: {
+  role: "user" | "assistant";
+  content: string;
+}) {
+  const isUser = role === "user";
+  return (
+    <div
+      className={`flex items-start gap-3 ${
+        isUser ? "justify-end" : "justify-start"
+      }`}
+    >
+      {!isUser && (
+        <Avatar className="h-8 w-8">
+          <AvatarFallback>EA</AvatarFallback>
+        </Avatar>
+      )}
+      <div
+        className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm leading-relaxed shadow-sm ${
+          isUser ? "bg-primary text-primary-foreground" : "bg-muted"
+        }`}
+      >
+        {content}
       </div>
-
-      {/* ======================== */}
-      {/*  ENDPOINT TABLE SECTION  */}
-      {/* ======================== */}
-      <h2 className="text-2xl font-semibold mb-3">Endpoint Stats</h2>
-
-      {loadingStats ? (
-        <p>Loading…</p>
-      ) : (
-        <table className="min-w-full border border-gray-300 mb-12">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-4 py-2">Method</th>
-              <th className="border px-4 py-2">Endpoint</th>
-              <th className="border px-4 py-2">Count</th>
-              <th className="border px-4 py-2">Last Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.map((s) => (
-              <tr key={s.endpoint}>
-                <td className="border px-4 py-2">{s.method}</td>
-                <td className="border px-4 py-2">{s.endpoint}</td>
-                <td className="border px-4 py-2">{s.count}</td>
-                <td className="border px-4 py-2">
-                  {new Date(s.updatedAt).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {isUser && (
+        <Avatar className="h-8 w-8">
+          <AvatarFallback>ME</AvatarFallback>
+        </Avatar>
       )}
+    </div>
+  );
+}
 
-      {/* ======================== */}
-      {/*      USER LIST TABLE     */}
-      {/* ======================== */}
-      <h2 className="text-2xl font-semibold mb-3">User List</h2>
-
-      {loadingUsers ? (
-        <p>Loading users…</p>
-      ) : (
-        <table className="min-w-full border border-gray-300">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border px-4 py-2">User ID</th>
-              <th className="border px-4 py-2">Name</th>
-              <th className="border px-4 py-2">Email</th>
-              <th className="border px-4 py-2">Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td className="border px-4 py-2">{u.id}</td>
-                <td className="border px-4 py-2">{u.name}</td>
-                <td className="border px-4 py-2">{u.email}</td>
-                <td className="border px-4 py-2">
-                  {/* Not functional yet */}
-                  <button className="px-3 py-1 bg-red-600 text-white rounded">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+function TypingRow() {
+  return (
+    <div className="flex items-center gap-3">
+      <Avatar className="h-8 w-8">
+        <AvatarFallback>EA</AvatarFallback>
+      </Avatar>
+      <div className="rounded-2xl bg-muted px-4 py-2 text-sm shadow-sm">
+        <span className="inline-flex items-center gap-1">
+          <span className="relative top-[1px]">Thinking</span>
+          <span className="animate-pulse">.</span>
+          <span className="animate-pulse [animation-delay:150ms]">.</span>
+          <span className="animate-pulse [animation-delay:300ms]">.</span>
+        </span>
+      </div>
     </div>
   );
 }

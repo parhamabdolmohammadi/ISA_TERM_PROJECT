@@ -12,9 +12,6 @@ export default function AdminPage() {
   const [forbidden, setForbidden] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // ============================================================
-  // 🔐 FIRST: VERIFY ADMIN
-  // ============================================================
   useEffect(() => {
     async function checkAuth() {
       try {
@@ -43,9 +40,6 @@ export default function AdminPage() {
     checkAuth();
   }, []);
 
-  // ============================================================
-  // 📊 LOAD USER STATS + USERS (only if admin)
-  // ============================================================
   useEffect(() => {
     if (forbidden || authLoading) return;
 
@@ -73,9 +67,6 @@ export default function AdminPage() {
     loadUsers();
   }, [forbidden, authLoading]);
 
-  // ============================================================
-  // ❌ DELETE USER
-  // ============================================================
   async function handleDelete(id: string) {
     if (!confirm("Are you sure you want to delete this user?")) return;
 
@@ -90,9 +81,6 @@ export default function AdminPage() {
     }
   }
 
-  // ============================================================
-  // ⭐ PROMOTE USER
-  // ============================================================
   async function handlePromote(id: string) {
     if (!confirm("Promote this user to admin?")) return;
 
@@ -110,9 +98,6 @@ export default function AdminPage() {
     }
   }
 
-  // ============================================================
-  // LOADING / FORBIDDEN UI
-  // ============================================================
   if (authLoading) {
     return <p className="p-8 text-center">Checking access…</p>;
   }
@@ -127,9 +112,6 @@ export default function AdminPage() {
     );
   }
 
-  // ============================================================
-  // ADMIN DASHBOARD CONTENT
-  // ============================================================
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
